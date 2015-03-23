@@ -1,0 +1,72 @@
+--- /Users/davidetruffo/Projects/djangocms-styledlink/djangocms_styledlink_py3/models.py  Thu Mar 12 13:03:47 2015
++++ /Users/davidetruffo/Projects/djangocms-styledlink/djangocms_styledlink/models.py  Mon Mar 23 11:49:44 2015
+@@ -1,14 +1,14 @@
+ # -*- coding: utf-8 -*-
+
+ import warnings
+-import six
++
+ from importlib import import_module
+
+ from django.conf import settings
+ from django.contrib.contenttypes import generic
+ from django.contrib.contenttypes.models import ContentType
+ from django.db import models
+-from django.utils.encoding import force_text
++from django.utils.encoding import force_unicode
+ from django.utils.translation import ugettext_lazy as _
+
+ from cms.models import CMSPlugin
+@@ -49,17 +49,16 @@
+         continue
+
+     ok = True
+-    # if 'filter' in model:
+-        # print(model['filter'])
+-    #     for field in six.iterkeys(model['filter']):
+-    #         try:
+-    #             cls._meta.get_field_by_name(field.split('__')[0])
+-    #         except models.FieldDoesNotExist:
+-    #             warnings.warn('StyledLink: Defined filter expression refers to a field (%s) in model %s that do not appear to exist. Skipping...' % (field, model['class_path'], ), SyntaxWarning)
+-    #             ok = False
+-    #             break
+-    # if not ok:
+-        # continue
++    if 'filter' in model:
++        for field in model['filter'].iterkeys():
++            try:
++                cls._meta.get_field_by_name(field.split('__')[0])
++            except models.FieldDoesNotExist:
++                warnings.warn('StyledLink: Defined filter expression refers to a field (%s) in model %s that do not appear to exist. Skipping...' % (field, model['class_path'], ), SyntaxWarning)
++                ok = False
++                break
++    if not ok:
++        continue
+
+     if 'order_by' in model:
+         fields = model['order_by'].split(',')
+@@ -102,7 +101,7 @@
+         help_text=('The class to add to this link (do NOT preceed with a ".").'),
+     )
+
+-    def __str__(self):
++    def __unicode__(self):
+         return self.label
+
+
+@@ -239,7 +238,7 @@
+         # the linked model object.
+         #
+         if not self.label and self.int_destination:
+-            self.label = force_text(self.int_destination)
++            self.label = force_unicode(self.int_destination)
+
+         super(StyledLink, self).save(**kwargs)
+
+@@ -248,5 +247,5 @@
+         self.styles = oldinstance.styles.all()
+
+
+-    def __str__(self):
++    def __unicode__(self):
+         return self.label
