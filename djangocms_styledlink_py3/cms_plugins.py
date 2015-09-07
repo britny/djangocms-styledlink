@@ -49,7 +49,6 @@ class StyledLinkPlugin(CMSPluginBase):
 
         return FakeForm(Form, site)
 
-
     def icon_src(self, instance):
         if instance.link == '':
             return settings.STATIC_URL + u'djangocms_styledlink/images/link-error.png'

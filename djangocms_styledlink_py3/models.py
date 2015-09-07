@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-import six
 from importlib import import_module
 
 from django.conf import settings
@@ -21,7 +20,7 @@ else:
         'type': 'CMS Pages',
         'class_path': 'cms.models.Page',
         'manager_method': 'public',
-        'filter': { 'publisher_is_draft': False },
+        'filter': {'publisher_is_draft': False},
     }]
 
 #
@@ -35,22 +34,28 @@ for model in DJANGOCMS_STYLEDLINK_MODELS:
         # Ensure we can resolve this class
         cls = getattr(import_module(parts[0]), parts[1])
     except:
-        warnings.warn('djangocms_styledlink: Unable to resolve model: %s. Skipping...' % model['class_path'], SyntaxWarning)
+        warnings.warn('djangocms_styledlink: Unable to resolve model: %s. Skipping...' % model['class_path'],
+                      SyntaxWarning)
         continue
 
     # Check that the class defines a get_absolute_url() method on its objects.
     if 'get_absolute_url' not in cls.__dict__:
-        warnings.warn('djangocms_styledlink: Model %s does not appear to define get_absolute_url() for its object. Skipping...' % model['class_path'], SyntaxWarning)
+        warnings.warn(
+            'djangocms_styledlink: Model %s does not appear to define get_absolute_url() for its object. Skipping...'
+            % model['class_path'], SyntaxWarning)
         continue
 
     # Check that any manager method defined is legit
     if 'manager_method' in model and not getattr(cls.objects, model['manager_method']):
-        warnings.warn('djangocms_styledlink: Specified manager_method %s for model %s does not appear to exist. Skipping...' %(model['manager_method'], model['class_path'], ), SyntaxWarning)
+        warnings.warn(
+            'djangocms_styledlink: Specified manager_method %s for model %s does not appear to exist. Skipping...'
+            %(model['manager_method'], model['class_path'], ),
+            SyntaxWarning)
         continue
 
     ok = True
     # if 'filter' in model:
-        # print(model['filter'])
+    # print(model['filter'])
     #     for field in six.iterkeys(model['filter']):
     #         try:
     #             cls._meta.get_field_by_name(field.split('__')[0])
@@ -59,7 +64,7 @@ for model in DJANGOCMS_STYLEDLINK_MODELS:
     #             ok = False
     #             break
     # if not ok:
-        # continue
+    # continue
 
     if 'order_by' in model:
         fields = model['order_by'].split(',')
@@ -69,9 +74,11 @@ for model in DJANGOCMS_STYLEDLINK_MODELS:
             try:
                 cls._meta.get_field_by_name(field)
             except models.FieldDoesNotExist:
-                warnings.warn('StyledLink: Defined order_by expression refers to a field (%s) in model %s that do not appear to exist. Skipping...' % (field, model['class_path'], ), SyntaxWarning)
+                warnings.warn('StyledLink: Defined order_by expression refers to a field (%s) in model %s '
+                              'that do not appear to exist. Skipping...' % (field, model['class_path'], ),
+                              SyntaxWarning)
                 ok = False
-                break;
+                break
     if not ok:
         continue
 
@@ -89,7 +96,8 @@ for model in DJANGOCMS_STYLEDLINK_MODELS:
 
 class StyledLinkStyle(models.Model):
 
-    label = models.CharField(_('label'),
+    label = models.CharField(
+        _('label'),
         max_length=32,
         default='',
         help_text=_('The internal name of this link style.'),
@@ -99,7 +107,7 @@ class StyledLinkStyle(models.Model):
         _('link class'),
         max_length=32,
         default='',
-        help_text=('The class to add to this link (do NOT preceed with a ".").'),
+        help_text=_('The class to add to this link (do NOT preceed with a ".").'),
     )
 
     def __str__(self):
@@ -112,21 +120,24 @@ class StyledLink(CMSPlugin):
     A link to an other page or to an external website
     """
 
-    label = models.CharField(_('link text'),
+    label = models.CharField(
+        _('link text'),
         blank=True,
         default='',
         help_text=_("Required. The text that is linked."),
         max_length=255,
     )
 
-    title = models.CharField(_('title'),
+    title = models.CharField(
+        _('title'),
         blank=True,
         default='',
         help_text=_("Optional. If provided, will provide a tooltip for the link."),
         max_length=255,
     )
 
-    int_destination_type = models.ForeignKey(ContentType,
+    int_destination_type = models.ForeignKey(
+        ContentType,
         null=True,
         blank=True,
         limit_choices_to={"model__in": [ model['_cls_name'] for model in STYLEDLINK_MODELS ]},
@@ -145,9 +156,12 @@ class StyledLink(CMSPlugin):
     #
     # Hash, for current page or internal page destination
     #
-    page_destination = models.CharField(_('intra-page destination'),
+    page_destination = models.CharField(
+        _('intra-page destination'),
         blank=True,
-        help_text=_(u'Use this to specify an intra-page link. Can be used for the <em>current page</em> or with a specific internal destination. Do <strong>not</strong> include a leading “#”.'),
+        help_text=_(u'Use this to specify an intra-page link. Can be used for the <em>current page</em> '
+                    u'or with a specific internal destination. Do <strong>not</strong> include a leading “#”. '
+                    u'To trigger modals prepend "modal-" to the movie id.'),
         max_length=64,
     )
 
@@ -160,14 +174,14 @@ class StyledLink(CMSPlugin):
     # External links
     #
     ext_destination = models.TextField(_('external destination'),
-        blank=True,
-        default='',
-    )
+                                       blank=True,
+                                       default='',
+                                       )
 
     ext_follow = models.BooleanField(_('follow external link?'),
-        default=True,
-        help_text=_('Let search engines follow this hyperlink?'),
-    )
+                                     default=True,
+                                     help_text=_('Let search engines follow this hyperlink?'),
+                                     )
 
     mailto = models.EmailField(
         _("email address"),
@@ -176,7 +190,8 @@ class StyledLink(CMSPlugin):
         help_text=_("An email address. This will override an external url."),
     )
 
-    target = models.CharField(_("target"),
+    target = models.CharField(
+        _("target"),
         blank=True,
         choices=((
             ("", _("same window")),
@@ -189,7 +204,8 @@ class StyledLink(CMSPlugin):
         max_length=100,
     )
 
-    styles = models.ManyToManyField(StyledLinkStyle,
+    styles = models.ManyToManyField(
+        StyledLinkStyle,
         blank=True,
         default=None,
         null=True,
@@ -197,7 +213,6 @@ class StyledLink(CMSPlugin):
         related_name='styled_link_style',
         verbose_name=_("link style"),
     )
-
 
     @property
     def link(self):
@@ -223,7 +238,6 @@ class StyledLink(CMSPlugin):
         else:
             return ''
 
-
     def save(self, **kwargs):
         #
         # We always need to remember if `page_destination` (hash) was set in
@@ -243,10 +257,9 @@ class StyledLink(CMSPlugin):
 
         super(StyledLink, self).save(**kwargs)
 
-
     def copy_relations(self, oldinstance):
         self.styles = oldinstance.styles.all()
 
-
     def __str__(self):
         return self.label
+
