@@ -171,6 +171,22 @@ class StyledLink(CMSPlugin):
     int_hash = models.BooleanField(default=False)
 
     #
+    # Videos in modal
+    #
+    video_link = models.CharField(
+        _('Video url'),
+        help_text=_('Link to an external video (Youtube or Vimeo). Other link types have priority, empty them to get the video link to work'),
+        blank=True,
+        default='',
+        null=True,
+        max_length=2048)
+
+    open_in_modal = models.BooleanField(
+        _('Open video in modal'),
+        help_text=_('Whether the video will open in a modal overlay or behaves just like a link.'),
+        default=False)
+
+    #
     # External links
     #
     ext_destination = models.TextField(_('external destination'),

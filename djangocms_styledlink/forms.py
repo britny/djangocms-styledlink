@@ -21,7 +21,11 @@ class StyledLinkForm(ModelForm):
             'title',
             'page_destination',
             'int_destination',
-            'ext_destination', 'target', 'ext_follow',
+            'ext_destination',
+            'video_link',
+            'open_in_modal',
+            'target',
+            'ext_follow',
             'styles',
         )
 

@@ -1,16 +1,86 @@
-{% load cms_tags %}
+{% load cms_tags video_custom_tags sekizai_tags staticfiles %}
 <span class="plugin_styledlink{% for style in instance.styles.all %} {{ style.link_class }}{% endfor %}">
   <span class="inner">
-    {% if instance.link %}
-      <a href="{{ instance.link }}"{% if instance.target %} target="{{ instance.target }}"{% endif %}{% if not instance.ext_follow %} rel="nofollow"{% endif %}>
+    {% if instance.link or instance.video_link and not instance.open_in_modal %}
+      <a href="{% if instance.link %}{{ instance.link }}{% elif instance.video_link %}{{ instance.video_link }}{% endif %}"{% if instance.target %} target="{{ instance.target }}"{% endif %}{% if not instance.ext_follow %} rel="nofollow"{% endif %}>
+    {% endif %}
+    {% if instance.open_in_modal and instance.video_link %}
+      <a href="" data-toggle="modal" data-target="#modal-{{ instance.pk }}-{{ instance.video_link|get_video_id }}" class="{% for style in instance.styles.all %} {{ style.link_class }}{% endfor %}">
     {% endif %}
     {% for plugin in instance.child_plugin_instances %}
       {% render_plugin plugin %}
     {% empty %}
       {{ instance.label }}
     {% endfor %}
-    {% if instance.link %}
-      </a>
-    {% endif %}
+    {% if instance.link or instance.video_link %}</a>{% endif %}
   </span>
 </span>
+
+
+
+
+{# Modal markup and scripts #}
+{% if instance.open_in_modal and instance.video_link %}
+  <div class="modal fade" id="modal-{{ instance.pk }}-{{ instance.video_link|get_video_id }}" tabindex="-1" role="dialog" aria-labelledby="modal-{{ instance.pk }}-{{ instance.video_link|get_video_id }}Label">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">&nbsp;</h4>
+        </div>
+        <div class="modal-body">
+          <div class="embed-responsive embed-responsive-16by9">
+          <iframe id="modal-{{ instance.pk }}-{{ instance.video_link|get_video_id }}-frame" class="embed-responsive-item" src="{{ instance.video_link|embed_url }}{% if 'vimeo' in instance.video_link|embed_url %}?{% else %}&{% endif %}{% if 'youtube' in instance.video_link|embed_url %}enablejsapi=1{% elif 'vimeo' in instance.video_link|embed_url %}api=1&player_id=modal-{{ instance.pk }}-{{ instance.video_link|get_video_id }}-frame{% endif %}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {# /Modal #}
+
+
+
+{# Append js stuff #}
+{% addtoblock 'js' %}
+<script type="text/javascript" src="https://www.youtube.com/iframe_api"></script>
+<script type="text/javascript" src="{% static 'portlet_plugin/js/jquery.vimeo.api.min.js' %}"></script>
+{% endaddtoblock 'js' %}
+
+{% addtoblock 'js' %}
+<script type="text/javascript">
+  var players = {};
+</script>
+{% endaddtoblock 'js' %}
+
+{% addtoblock 'js' %}
+<script type="text/javascript">
+  function onYouTubeIframeAPIReady() {
+    $('iframe[id^="modal-"]').each(function () {
+      if ($(this).attr('src').indexOf('vimeo') > -1) {
+        players[$(this).attr('id')] = $(this).attr('id');
+      }else{
+        players[$(this).attr('id')] = new YT.Player($(this).attr('id'));
+      }
+    });
+  }
+</script>
+{% endaddtoblock 'js' %}
+
+{% addtoblock 'js' %}
+<script type="text/javascript">
++function($) {
+  'use strict';
+  $('.modal').on('hide.bs.modal', function(e) {
+    // if it is a modal with an iframe
+    if ($(this).find('iframe').length > 0) {
+      if ($(this).find('iframe').attr('src').indexOf('vimeo') > -1) {
+        $('#' + players[$(this).attr('id') + '-frame']).vimeo('pause');
+      }else{
+        players[$(this).attr('id') + '-frame'].pauseVideo();
+      }
+    }
+  });
+}(jQuery);
+</script>
+{% endaddtoblock 'js' %}
+{% endif %}
