@@ -46,7 +46,7 @@ setup(
     license='LICENSE.txt',
     platforms=['OS Independent'],
     classifiers=CLASSIFIERS,
-    long_description=open('README.md').read(),
+    long_description=open('README.md', 'r', encoding='utf-8').read(),
     include_package_data=True,
     zip_safe=False,
     download_url='https://github.com/mkoistinen/djangocms-styledlink/tarball/0.1.1',
